@@ -1,15 +1,19 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
-type User = {
-  username: string;
-  email: string;
-};
+import { RecieveUserDto } from './dto/userRecieved.dto';
 @Controller()
 export class AppController {
   constructor(private appService: AppService) {}
   @EventPattern('USER_CREATED')
-  async handleUserCreated(@Payload() data: User) {
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  async handleUserCreated(@Payload() data: RecieveUserDto) {
     await this.appService.createUser(data.username, data.email);
   }
 }
